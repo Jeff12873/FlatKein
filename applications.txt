@@ -1,0 +1,7 @@
+# Applications publiées dans FlatKein, une par ligne :
+#   dépôt GitHub          identifiant Flatpak          nom affiché
+#
+# Chaque dépôt doit publier son .flatpak dans ses « Releases » GitHub.
+# Ajouter une application = ajouter une ligne, puis envoyer (git push).
+
+Jeff12873/enveloppes   fr.enveloppes.Enveloppes   Enveloppes

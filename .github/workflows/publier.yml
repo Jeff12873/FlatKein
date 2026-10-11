@@ -1,0 +1,86 @@
+# Assemble les applications de applications.txt en un dépôt Flatpak signé et le publie sur GitHub Pages.
+#
+# Se lance :
+#   - quand une application prévient d'une nouvelle version (repository_dispatch « nouvelle-version ») ;
+#   - à la main : onglet Actions › Publier › Run workflow, ou « gh workflow run publier -R Jeff12873/FlatKein » ;
+#   - quand applications.txt change ;
+#   - toutes les 6 heures, par sécurité : ne republie que si une application a une nouvelle version.
+#
+# Secret nécessaire : CLE_GPG_PRIVEE. Variable nécessaire : CLE_GPG_ID.
+
+name: Publier
+
+on:
+  repository_dispatch:
+    types: [nouvelle-version]
+  workflow_dispatch:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  ADRESSE: https://jeff12873.github.io/FlatKein
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  assembler:
+    runs-on: ubuntu-24.04
+    outputs:
+      publier: ${{ steps.verifier.outputs.publier }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Une application a-t-elle changé ?
+        id: verifier
+        run: |
+          publie=$(curl -fsSL "$ADRESSE/versions.txt" || true)
+          actuel=$(grep -v -e '^#' -e '^[[:space:]]*$' applications.txt | while read -r depot id nom; do
+            echo "$depot $(gh release view --repo "$depot" --json tagName --jq .tagName)"; done)
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$publie" = "$actuel" ]; then
+            echo "Rien de nouveau."
+            echo "publier=non" >> "$GITHUB_OUTPUT"
+          else
+            echo "publier=oui" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Outils
+        if: steps.verifier.outputs.publier == 'oui'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak ostree
+
+      - name: Clé de signature
+        if: steps.verifier.outputs.publier == 'oui'
+        run: echo "$CLE_GPG_PRIVEE" | gpg --batch --import
+        env:
+          CLE_GPG_PRIVEE: ${{ secrets.CLE_GPG_PRIVEE }}
+
+      - name: Assemblage
+        if: steps.verifier.outputs.publier == 'oui'
+        run: CLE_GPG=${{ vars.CLE_GPG_ID }} sh outils/assembler.sh
+
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.verifier.outputs.publier == 'oui'
+        with:
+          path: site
+
+  publier:
+    needs: assembler
+    if: needs.assembler.outputs.publier == 'oui'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    steps:
+      - id: deploiement
+        uses: actions/deploy-pages@v4
