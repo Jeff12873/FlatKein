@@ -36,10 +36,26 @@ et toutes les 6 heures par sécurité (sans rien republier si rien n'a changé).
 
 ## Ajouter une application
 
-1. Dans le dépôt de l'application, un workflow qui fabrique le `.flatpak` et le publie en Release
-   (modèle : `.github/workflows/flatpak.yml` du dépôt `enveloppes`).
-2. Ajouter une ligne dans `applications.txt` : `Compte/depot  identifiant.Flatpak  Nom`.
-3. `git push` : l'application apparaît dans FlatKein quelques minutes plus tard.
+Modèle complet : le dépôt [enveloppes](https://github.com/Jeff12873/enveloppes)
+(`outils/flatpak.sh`, `bureau/flatpak/`, `.github/workflows/flatpak.yml`).
+
+1. **Identifiant Flatpak** au format `domaine.inverse.NomApp` (ex. `fr.enveloppes.Enveloppes`) :
+   la dernière partie est le nom affiché par défaut.
+2. **Fichiers Flatpak** dans le dépôt de l'application :
+   - un `.desktop` (lanceur du menu) et un `.metainfo.xml` (fiche : nom, résumé, description, catégories) ;
+   - des icônes PNG 64 et 128 px, plus une grande (512 px) ;
+   - **la fiche AppStream** dans `files/share/app-info/xmls/<id>.xml.gz` et les icônes dans
+     `files/share/app-info/icons/flatpak/<taille>/<id>.png`. **Sans elle, l'application est invisible
+     dans Warehouse et Discover**, même si elle est bien dans le dépôt.
+3. **Workflow GitHub** qui fabrique le `.flatpak` à chaque `git push` et le publie en **Release**
+   (permission `contents: write`), puis prévient FlatKein avec le secret `FLATKEIN_JETON` :
+   `gh secret set FLATKEIN_JETON -R Jeff12873/<application>` (même jeton pour toutes les applications).
+4. Ajouter une ligne dans `applications.txt` : `Jeff12873/<depot>  <identifiant>  <Nom>`, puis `git push`.
+5. Vérifier : https://jeff12873.github.io/FlatKein/versions.txt liste la nouvelle application,
+   puis elle apparaît dans Warehouse (rouvrir Warehouse pour qu'il relise le catalogue).
+
+Pour une application **qui n'est pas en Electron**, la base `org.electronjs.Electron2.BaseApp` et le
+lanceur `zypak-wrapper` ne servent pas : seuls la fiche, le workflow et la Release restent identiques.
 
 ## Signature
 
