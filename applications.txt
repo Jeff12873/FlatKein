@@ -5,3 +5,4 @@
 # Ajouter une application = ajouter une ligne, puis envoyer (git push).
 
 Jeff12873/enveloppes   fr.enveloppes.Enveloppes   Enveloppes
+Jeff12873/cadence      fr.cadence.Cadence         Cadence
