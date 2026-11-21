@@ -36,8 +36,9 @@ et toutes les 6 heures par sécurité (sans rien republier si rien n'a changé).
 
 ## Ajouter une application
 
-Modèle complet : le dépôt [enveloppes](https://github.com/Jeff12873/enveloppes)
-(`outils/flatpak.sh`, `bureau/flatpak/`, `.github/workflows/flatpak.yml`).
+Modèle complet : le dépôt **template** [modele-logiciel](https://github.com/Jeff12873/modele-logiciel)
+(bouton **Use this template**, puis `sh outils/renommer.sh "Nom" fr.domaine.Nom`). Il contient déjà
+`outils/flatpak.sh`, `bureau/flatpak/` et `.github/workflows/flatpak.yml` : il reste les étapes 3 (secret) et 4 ci-dessous.
 
 1. **Identifiant Flatpak** au format `domaine.inverse.NomApp` (ex. `fr.enveloppes.Enveloppes`) :
    la dernière partie est le nom affiché par défaut.
